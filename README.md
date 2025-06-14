@@ -104,7 +104,7 @@ pip install -e .
 ### Model Eğitimi
 
 ```python
-from main import HairDiseasesClassificationApp, HairstyleClassificationApp, HairStyleSegmentationApp
+from main import HairDiseasesClassificationApp, HairstyleClassificationApp, HairstyleSegmentationApp
 
 # Saç hastalıkları sınıflandırma modelini eğitme
 hair_diseases = HairDiseasesClassificationApp()
