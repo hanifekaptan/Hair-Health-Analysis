@@ -115,7 +115,7 @@ hairstyle = HairstyleClassificationApp()
 hairstyle.train()
 
 # Saç segmentasyon modelini eğitme
-segmentation = HairStyleSegmentationApp()
+segmentation = HairstyleSegmentationApp()
 segmentation.train()
 ```
 
