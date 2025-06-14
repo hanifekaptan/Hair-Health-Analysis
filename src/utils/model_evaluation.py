@@ -20,7 +20,7 @@ class Evaluation:
         self.model_path = os.path.join(model_dir, "best_model.keras")        
         self.keras_model = keras.models.load_model(self.model_path)
 
-        
+
 class ClassificationEvaluation(Evaluation):
 
     def __init__(
@@ -33,7 +33,7 @@ class ClassificationEvaluation(Evaluation):
         self.class_names = self.test_gen.class_indices.keys()
         self.model = self.keras_model
 
-        
+
     def _get_y_pred(
             self
             ) -> np.ndarray:
