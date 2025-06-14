@@ -48,7 +48,4 @@ result = classifier.api()
 
 ## Performans Metrikleri
 
-- Accuracy: %94
-- Precision: %93
-- Recall: %92
-- F1-Score: %92.5
+- Accuracy: %68
