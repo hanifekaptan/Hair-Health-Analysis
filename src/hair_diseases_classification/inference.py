@@ -1,5 +1,5 @@
 from src.utils.data_preprocessing import DataPreprocessing
-from src.config.config_saved_model_path import *
+from src.config.config_saved_model_dir import *
 from src.config.config_data_loading import IMG_SIZE
 from tensorflow import keras
 import matplotlib.pyplot as plt
@@ -8,12 +8,15 @@ import numpy as np
 
 class HairDiseasesInference:
 
+    class_names = ["Alopecia Areata", "Contact Dermatitis", "Folliculitis", "Head Lice", "Lichen Planus",
+                    "Male Pattern Baldness", "Psoriasis", "Seborrheic Dermatitis", "Telogen Effluvium", "Tinea Capitis"]
+    
     def __init__(
             self
             ):
         
         self.img_size = IMG_SIZE
-        self.model_path = HAIR_DISEASES_CLASS_MODEL_PATH
+        self.model_path = os.path.join(HAIR_DISEASES_CLASS_MODEL_DIR, "best_model.keras")
         self.data_preprocessing = DataPreprocessing()
         self.model = self._load_hair_classification_model()
     
@@ -64,6 +67,7 @@ class HairDiseasesInference:
             hair_type_probs (np.ndarray): Saç hastalığı olasılıkları dizisi.
         """
         image = self.data_preprocessing.mobilenet_preprocess(image_array)
+        image = np.expand_dims(image, axis=0)
         hair_type_probs = self.model.predict(image)
         return hair_type_probs
     
@@ -89,9 +93,9 @@ class HairDiseasesInference:
 
 
     def inference(
-            self,
-            image_array
-            ) -> np.ndarray:
+        self,
+        image_array
+    ) -> tuple[str, float]:
         """
         Saç hastalığı olasılıklarından en yüksek olasılıklı sınıfı ve olasılığı döndürür.
 
@@ -102,4 +106,7 @@ class HairDiseasesInference:
             tuple[str, float]: En yüksek olasılıklı sınıf adı ve olasılığı.
         """
         hair_type_probs = self.classify_disease(image_array)
-        return hair_type_probs
+        predicted_class_index = np.argmax(hair_type_probs[0])  # En yüksek olasılıklı sınıfın indeksini bul
+        probability = hair_type_probs[0][predicted_class_index]  # Olasılığı al
+        predicted_class_name = self.class_names[predicted_class_index]  # Sınıf adını al
+        return predicted_class_name, probability

@@ -31,11 +31,8 @@ class HairDiseasesClassificationModel:
                                                     weights='imagenet',
                                                     input_tensor=inputs)
         base_model.trainable = False
-        # Use a functional approach to connect the input layer to the base model and subsequent layers
-        x = base_model(inputs) # Pass the defined inputs to the base model
-        x = keras.layers.GlobalAveragePooling2D()(x)
-        outputs = keras.layers.Dense(num_classes, activation='softmax')(x)
-
-        # Create the Keras Model using the specified inputs and outputs
+        tensor = base_model(inputs)
+        tensor= keras.layers.GlobalAveragePooling2D()(tensor)
+        outputs = keras.layers.Dense(num_classes, activation='softmax')(tensor)
         model = keras.Model(inputs=inputs, outputs=outputs)
         return model

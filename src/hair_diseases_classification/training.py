@@ -1,5 +1,5 @@
 from src.config.config_data_path import HAIR_DISEASES_CLASS_DATA_PATH
-from src.config.config_saved_model_path import HAIR_DISEASES_CLASS_MODEL_PATH
+from src.config.config_saved_model_dir import HAIR_DISEASES_CLASS_MODEL_DIR
 from src.hair_diseases_classification.model import HairDiseasesClassificationModel
 from src.utils.data_loading import ClassificationDataLoader
 from src.utils.model_training import ClassificationTraining
@@ -14,7 +14,8 @@ class Training:
             self
             ):
         
-        self.class_model_path = HAIR_DISEASES_CLASS_MODEL_PATH
+        self.class_model_dir = HAIR_DISEASES_CLASS_MODEL_DIR
+        self.class_model_path = os.path.join(self.class_model_dir, "best_model.keras")
         self.data_dir = HAIR_DISEASES_CLASS_DATA_PATH
         self.learning_rate = 0.001
         self.epochs = 15
@@ -76,7 +77,7 @@ class Training:
         model = self.train_temp.train(
             train_gen=self.train_gen,
             val_gen=self.val_gen,
-            best_model_dir=self.class_model_path,
+            best_model_dir=self.class_model_dir,
             learning_rate=self.learning_rate,
             epochs=self.epochs
             )
