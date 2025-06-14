@@ -49,4 +49,3 @@
   publisher={Elsevier}
 }
 ```
-```bash
