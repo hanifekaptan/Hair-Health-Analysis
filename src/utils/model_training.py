@@ -3,6 +3,7 @@ from src.utils.data_loading import (
     ClassificationDataLoader)
 from src.config.config_model import *
 import matplotlib.pyplot as plt
+from tensorflow import keras
 
 
 class Training:
@@ -50,8 +51,8 @@ class ClassificationTraining(Training):
         Returns:
             keras.Model: Eğitilen model
         """
-        callbacks = CALLBACKS_PARAMS(best_model_dir)
-        compiler_params = COMPILER_PARAMS(learning_rate)
+        callbacks = CALLBACKS_PARAMS_CLASS(best_model_dir)
+        compiler_params = COMPILER_PARAMS_CLASS(learning_rate)
         self.model.compile(**compiler_params)
         self.model.fit(
             train_gen,
@@ -103,15 +104,15 @@ class SegmentationTraining(Training):
         super().__init__(data_dir)
         self.data_loader = SegmentationDataLoader(data_dir)
         self.model = keras_model
-
+        
         
     def train(
             self,
             train_gen: keras.preprocessing.image.DirectoryIterator,
             val_gen: keras.preprocessing.image.DirectoryIterator,
-            best_model_dir,
-            learning_rate,
-            epochs
+            best_model_dir: str,
+            epochs: int,
+            learning_rate: float
             ) -> keras.Model:
         """
         Modeli eğitir.
@@ -120,22 +121,19 @@ class SegmentationTraining(Training):
             train_gen (keras.preprocessing.image.DirectoryIterator): Eğitim verileri
             val_gen (keras.preprocessing.image.DirectoryIterator): Test verileri
             best_model_dir (str): En iyi modelin kaydedileceği dizin
-            learning_rate (float): Öğrenme oranı
             epochs (int): Eğitim sayısı
 
         Returns:
             keras.Model: Eğitilen model
         """
-        callbacks = CALLBACKS_PARAMS(best_model_dir)
-        compiler_params = COMPILER_PARAMS(learning_rate)
+        callbacks = CALLBACKS_PARAMS_SEG(best_model_dir)
+        compiler_params = COMPILER_PARAMS_SEG(learning_rate)
         self.model.compile(**compiler_params)
-        self.model.fit(
+        history = self.model.fit(
             train_gen,
-            steps_per_epoch=train_gen.samples // train_gen.batch_size,
             epochs=epochs,
             validation_data=val_gen,
-            validation_steps=val_gen.samples // val_gen.batch_size,
-            callbacks = callbacks
+            callbacks=callbacks
         )
         return self.model
 

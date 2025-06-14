@@ -1,47 +1,166 @@
-# Saç Analizi Üzerine Test Projesi
-Bu proje, saç analizi üzerine bir test case olarak geliştirilmiştir. Amacı, kullanıcıların saç durumunu değerlendirerek, saç sağlığı ile ilgili bilgi vermektir. Görüntü işleme ve derin öğrenme tekniklerini kullanarak, saçın genel durumu, tipleri ve sağlık durumları hakkında detaylı analizler yapılması hedeflenmektedir.
+# Saç Sağlığı Analizi Projesi
 
-### Kullanılan Teknolojiler
-- **Programlama Dili:** Python
-- **Görüntü İşleme:** OpenCV, YOLO
-- **Derin Öğrenme:** TensorFlow, Keras
-- **API:** 
-- **Kütüphaneler:** 
+Bu proje, yapay zeka kullanarak saç sağlığı analizi yapan bir sistemdir. Proje, saç hastalıklarının sınıflandırılması, saç stillerinin sınıflandırılması ve saç segmentasyonu gibi farklı görevleri içermektedir.
 
-### Saç Analiz Kriterleri
-- **Saçın Genel Durumu ve Tipi:**
-  - Saç tipi (düz, dalgalı, kıvırcık, afro)
-  - Saç yoğunluğu (ince, orta, kalın telli)
-  - Saç dokusu (kuru, yağlı, normal)
-  - Gözeneklilik (düşük, orta, yüksek)
-  - Saç esnekliği (sağlıklı mı, kolay kırılıyor mu)
-  
-- **Saç ve Deri Problemleri:**
-  - Kepek, pullanma
-  - Yağlanma derecesi ve hangi bölgelerde yoğunlaştığı
-  - Saç kırıkları ve yıpranma
-  - Saç dökülmesi ve seyrelme analizi
-  - Saç derisi sorunları (kızarıklık, egzama, sedef vb.)
-  
-- **Kimyasal Durum ve Renk Analizi:**
-  - Doğal saç rengi ve tonu
-  - Beyaz saç oranı
-  - Saçın işlem görüp görmediği (boya, açıcı kullanımı vb.)
-  
-- **Saç Sağlığı ve Hasar Durumu:**
-  - Saçın nem oranı (kuruluk)
-  - Protein ve keratin kaybı
-  - Isı hasarı (sık düzleştirme ya da maşa kullanımı belirtileri)
+## 📁 Klasör Yapısı
 
-### Dokümantasyon Açıklaması
+```
+hair_health_analysis/
+├── src/
+│   ├── config/
+│   │   ├── config_data_loading.py
+│   │   ├── config_model.py
+│   │   ├── config_data_path.py
+│   │   └── config_saved_model_path.py
+│   ├── hair_diseases_classification/
+│   │   ├── data_sample/
+│   │   ├── experiences/
+│   │   ├── saved_models/
+│   │   │   ├── logs/
+│   │   │   ├── results/
+│   │   │   └── best_model.keras
+│   │   ├── api.py
+│   │   ├── inference.py
+│   │   ├── model.py
+│   │   └── training.py
+│   ├── hairstyle_classification/
+│   │   ├── original_data_sample/
+│   │   ├── overlayed_data_sample/
+│   │   ├── experiences/
+│   │   ├── saved_models/
+│   │   │   ├── logs/
+│   │   │   ├── results/
+│   │   │   └── best_model.keras
+│   │   ├── api.py
+│   │   ├── inference.py
+│   │   ├── model.py
+│   │   └── training.py
+│   ├── hairstyle_segmentation/
+│   │   ├── data_sample/
+│   │   ├── experiences/
+│   │   ├── saved_models/
+│   │   │   ├── logs/
+│   │   │   ├── results/
+│   │   │   └── best_model.keras
+│   │   ├── api.py
+│   │   ├── inference.py
+│   │   ├── model.py
+│   │   └── training.py
+│   └── utils/
+│       ├── class_evaluation.py
+│       ├── data_loading.py
+│       ├── data_preprocessing.py
+│       └── training.py
+├── docs/
+│   ├── references.md
+│   ├── hair_diseases_classification.md
+│   ├── hairstyle_classification.md
+│   ├── hairstyle_segmentation.md
+│   ├── config.md
+│   ├── utils.md
+│   ├── overview.md
+│   └── usage.md
+├── main.py
+├── setup.py
+├── README.md
+└── LICENSE
+```
+
+## 🚀 Özellikler
+
+- **Saç Hastalıkları Sınıflandırma**: Saç hastalığı olduğu bilinen kişilerde 10 farklı saç hastalığını tespit eder.
+- **Saç Stili Sınıflandırma**: Görüntüdeki saçı tespit ederek saç stilini tahmin eder.
+- **Saç Segmentasyonu**: Saç bölgelerini görüntüden ayırır
+- **Folikül Tespiti**: Henüz eklenmedi
+- **API Desteği**: RESTful API ile kolay entegrasyon
+
+## 🛠️ Kurulum
+
+**1. Python 3.12.3 sürümü yükleyin.**
+
+**2. Projeyi klonlayın:**
+```bash
+git clone https://github.com/hanifekaptan/hair_health_analysis.git
+cd hair_health_analysis
+```
+
+**3. Sanal ortam oluşturun ve aktifleştirin:**
+```bash
+# Windows için
+python -m venv hair_health_analysis
+hair_health_analysis\Scripts\activate
+
+# Linux/Mac için
+python -m venv hair_health_analysis
+source hair_health_analysis/bin/activate
+```
+
+**4. Gerekli paketleri yükleyin:**
+```bash
+pip install -e .
+```
 
 
-### Uygulamayı Dene
-1. Hugging Face:
-2. Lokal:
+## 💻 Kullanım
+
+### Model Eğitimi
+
+```python
+from main import HairDiseasesClassificationApp, HairstyleClassificationApp, HairStyleSegmentationApp
+
+# Saç hastalıkları sınıflandırma modelini eğitme
+hair_diseases = HairDiseasesClassificationApp()
+hair_diseases.train()
+
+# Saç stili sınıflandırma modelini eğitme
+hairstyle = HairstyleClassificationApp()
+hairstyle.train()
+
+# Saç segmentasyon modelini eğitme
+segmentation = HairStyleSegmentationApp()
+segmentation.train()
+```
+
+### Model Değerlendirme
+
+```python
+# Model değerlendirme
+hair_diseases.evaluate()
+hairstyle.evaluate()
+segmentation.evaluate()
+```
+
+### API Kullanımı
+
+```python
+# hair diseases classification için API'yi başlatma
+hair_diseases.api()  # http://127.0.0.1:8000 adresinde çalışır
+```
+
+```python
+# hairstle classification için API'yi başlatma
+hairstyle.api()  # http://127.0.0.1:8000 adresinde çalışır
+```
+
+```python
+# hairstyle segmentation için API'yi başlatma
+segmentation.api()  # http://127.0.0.1:8000 adresinde çalışır
+```
+## 📊 Model Performansı
+
+- Saç Hastalıkları Sınıflandırma: 0.90 accuracy
+- Saç Stili Sınıflandırma: 0.90 accuracy
+- Saç Segmentasyonu: 0.95 accuracy
 
 
-### İletişim Bilgileri
-- **LinkedIn:**
-- **E-Posta:**
-- **Telefon:**
+## 📝 Lisans
+
+Bu proje Apache License 2.0 altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+
+
+## 📞 İletişim
+
+Hanife Kaptan
+- Email: [hanifekaptan.dev@gmail.com](mailto:hanifekaptan.dev@gmail.com)
+- LinkedIn: [Hanife Kaptan](https://www.linkedin.com/in/hanife-kaptan/)
+

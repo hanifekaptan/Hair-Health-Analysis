@@ -1,4 +1,3 @@
-from typing import Generator
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     classification_report,
@@ -8,16 +7,18 @@ from sklearn.metrics import (
 from tensorflow import keras
 import seaborn as sns
 import numpy as np
+import os
+import tensorflow as tf
 
 
 class Evaluation:
 
     def __init__(
             self,
-            model_path: str
+            model_dir: str
             ):
-        
-        self.keras_model = keras.models.load_model(model_path)
+        self.model_path = os.path.join(model_dir, "best_model.keras")        
+        self.keras_model = keras.models.load_model(self.model_path)
 
         
 class ClassificationEvaluation(Evaluation):
@@ -25,9 +26,9 @@ class ClassificationEvaluation(Evaluation):
     def __init__(
             self,
             test_data_gen: keras.preprocessing.image.DirectoryIterator,
-            model_path: str
+            model_dir: str
             ):
-        super().__init__(model_path)
+        super().__init__(model_dir)
         self.test_gen = test_data_gen
         self.class_names = self.test_gen.class_indices.keys()
         self.model = self.keras_model
@@ -211,206 +212,123 @@ class ClassificationEvaluation(Evaluation):
         self.print_results(classification_rep, confusion_mat, accuracy, loss)
         self.visualize_confusion_matrix(confusion_mat)
 
-class SegmentationEvaluation(Evaluation):
+
+class SegmentationEvaluation:
 
     def __init__(
             self,
-            test_data_gen: Generator,
-            model_path: str,
-            num_classes: int = 2
+            test_dataset: tf.data.Dataset,
+            model_path: str
             ):
-        
-        super().__init__(model_path)
-        self.model = self.keras_model
-        self.test_gen = test_data_gen
-        self.num_classes = num_classes
-
-
-    def _get_y_pred(
-            self
-            ) -> list[np.ndarray]:
         """
-        Test verileri ile modeli tahmin eder ve tahmin edilen maskeleri döndürür.
+        Segmentasyon modeli değerlendirme sınıfı.
 
         Args:
-            None
+            test_dataset (tf.data.Dataset): Test veri seti
+            model_path (str): Model dosyasının yolu
 
         Returns:
-            list[np.ndarray]: Tahmin edilen maskeler
+            None
         """
-        predictions = self.model.predict(self.test_gen)
-        y_pred = np.argmax(predictions, axis=-1)  
-        return list(y_pred)
+        self.test_dataset = test_dataset
+        self.model_path = model_path
+        self.model = self._load_model()
+        self.num_classes = 2
 
 
-    def _get_y_true(
+    def _load_model(
             self
-            ) -> list[np.ndarray]:
+            ) -> keras.Model:
         """
-        Gerçek maskeleri alır ve döndürür.
-        
-        Args:
-            None
+        Kaydedilmiş modeli yükler.
 
         Returns:
-            list[np.ndarray]: Gerçek maskeler
+            keras.Model: Yüklenen model
+
+        Raises:
+            FileNotFoundError: Model dosyası bulunamazsa
         """
-        y_true = []
-        for _, mask in self.test_gen:
-            y_true.extend(np.argmax(mask, axis=-1).flatten())
-        return y_true
+        if not os.path.exists(self.model_path):
+            raise FileNotFoundError(f"Model file not found at: {self.model_path}")
+        return keras.models.load_model(self.model_path, compile=False)
 
 
     def _calculate_iou(
             self,
-            y_true: np.ndarray,
-            y_pred: np.ndarray,
+            y_true_segment: np.ndarray,
+            y_pred_segment: np.ndarray,
             class_id: int
             ) -> float:
         """
-        Belirli bir sınıf için IoU (Intersection over Union) hesaplar.
+        Belirli bir sınıf için IoU (Intersection over Union) skorunu hesaplar.
 
         Args:
-            y_true (np.ndarray): Gerçek maskeler
-            y_pred (np.ndarray): Tahmin edilen maskeler
-            class_id (int): IoU'nun hesaplanacağı sınıfın indeksi
+            y_true_segment (np.ndarray): Gerçek segmentasyon maskesi
+            y_pred_segment (np.ndarray): Tahmin edilen segmentasyon maskesi
+            class_id (int): Hesaplanacak sınıf ID'si
 
         Returns:
-            float: IoU değeri
+            float: Hesaplanan IoU skoru (0-1 arası)
         """
-        y_true_class = (y_true == class_id).astype(np.bool_)
-        y_pred_class = (y_pred == class_id).astype(np.bool_)
-        
+        y_true_flat = y_true_segment.flatten()
+        y_pred_flat = y_pred_segment.flatten()
+        y_true_class = (y_true_flat == class_id)
+        y_pred_class = (y_pred_flat == class_id)
         intersection = np.logical_and(y_true_class, y_pred_class).sum()
         union = np.logical_or(y_true_class, y_pred_class).sum()
-        if union == 0:
-            return 0.0
-        return intersection / union
+        iou = (intersection + 1e-10) / (union + 1e-10) 
+        return iou
 
 
     def _calculate_mean_iou(
             self,
-            y_true: list[np.ndarray],
-            y_pred: list[np.ndarray]
+            y_true_all: np.ndarray,
+            y_pred_all: np.ndarray
             ) -> float:
         """
-        Tüm sınıflar için ortalama IoU (Intersection over Union) hesaplar.
+        Tüm sınıflar için ortalama IoU skorunu hesaplar.
 
         Args:
-            y_true (list[np.ndarray]): Gerçek maskelerin listesi
-            y_pred (list[np.ndarray]): Tahmin edilen maskelerin listesi
+            y_true_all (np.ndarray): Tüm gerçek segmentasyon maskeleri
+            y_pred_all (np.ndarray): Tüm tahmin edilen segmentasyon maskeleri
 
         Returns:
-            float: Ortalama IoU değeri
+            float: Tüm sınıfların ortalama IoU skoru (0-1 arası)
         """
-        total_iou = 0.0
+        all_iou_scores = []
         for class_id in range(self.num_classes):
-            iou = self._calculate_iou(np.array(y_true), np.array(y_pred), class_id)
-            total_iou += iou
-        return total_iou / self.num_classes
-
-
-    def _calculate_dice_coefficient(
-            self,
-            y_true: np.ndarray,
-            y_pred: np.ndarray,
-            class_id: int
-            ) -> float:
-        """
-        Belirli bir sınıf için Dice katsayısını hesaplar.
-
-        Args:
-            y_true (np.ndarray): Gerçek maskeler
-            y_pred (np.ndarray): Tahmin edilen maskeler
-            class_id (int): Dice katsayısının hesaplanacağı sınıfın indeksi
-
-        Returns:
-            float: Dice katsayısı değeri
-        """
-        y_true_class = (y_true == class_id).astype(np.bool_)
-        y_pred_class = (y_pred == class_id).astype(np.bool_)
+            class_iou = self._calculate_iou(y_true_all, y_pred_all, class_id)
+            all_iou_scores.append(class_iou)
+            print(f"Class {class_id} IoU: {class_iou:.4f}")
         
-        intersection = np.sum(y_true_class & y_pred_class)
-        total_pixels = np.sum(y_true_class) + np.sum(y_pred_class)
-        if total_pixels == 0:
-            return 0.0
-        return 2.0 * intersection / total_pixels
+        mean_iou = np.mean(all_iou_scores)
+        return mean_iou
 
 
-    def _calculate_mean_dice_coefficient(
-            self,
-            y_true: list[np.ndarray],
-            y_pred: list[np.ndarray]
-            ) -> float:
-        """
-        Tüm sınıflar için ortalama Dice katsayısını hesaplar.
-
-        Args:
-            y_true (list[np.ndarray]): Gerçek maskelerin listesi
-            y_pred (list[np.ndarray]): Tahmin edilen maskelerin listesi
-
-        Returns:
-            float: Ortalama Dice katsayısı değeri
-        """
-        total_dice = 0.0
-        for class_id in range(self.num_classes):
-            dice = self._calculate_dice_coefficient(np.array(y_true), np.array(y_pred), class_id)
-            total_dice += dice
-        return total_dice / self.num_classes
-    
-    
-    def visualize_predictions(
-            self,
-            num_images: int = 5
-            ) -> None:
-        """
-        Tahminleri görselleştirir.
-        
-        Args:
-            num_images (int): Görselleştirilecek resim sayısı, varsayılan 5
-
-        Returns:
-            None
-        """
-        plt.figure(figsize=(15, 5 * num_images))
-        for i in range(num_images):
-            img_batch, mask_batch = next(self.test_gen)
-            img = img_batch[0]
-            true_mask = np.argmax(mask_batch[0], axis=-1)
-            pred_mask = np.argmax(self.model.predict(img_batch)[0], axis=-1)
-            plt.subplot(num_images, 3, i * 3 + 1)
-            plt.imshow(img)
-            plt.title("Görüntü")
-            plt.axis('off')
-            plt.subplot(num_images, 3, i * 3 + 2)
-            plt.imshow(true_mask, cmap='gray')
-            plt.title("Gerçek Maske")
-            plt.axis('off')
-            plt.subplot(num_images, 3, i * 3 + 3)
-            plt.imshow(pred_mask, cmap='gray')
-            plt.title("Tahmin Edilen Maske")
-            plt.axis('off')
-        plt.tight_layout()
-        plt.show()
-
-        
     def evaluation(
             self
             ) -> None:
         """
-        Modeli test verileriyle değerlendirir ve sonuçları yazdırır.
-        
-        Args:
-            None
+        Modeli test veri seti üzerinde değerlendirir ve sonuçları yazdırır.
 
         Returns:
             None
+
+        Note:
+            Şu anda fonksiyon sadece tahminleri toplar ve yazdırır.
+            IoU hesaplaması yorum satırı olarak bırakılmıştır.
         """
-        y_true = self._get_y_true()
-        predictions = self._get_y_pred()
-        y_pred = self._get_y_pred()
-        mean_iou = self._calculate_mean_iou(y_true, y_pred)
-        mean_dice = self._calculate_mean_dice_coefficient(y_true, y_pred)
-        print(f"Ortalama IoU: {mean_iou:.4f}")
-        print(f"Ortalama Dice Katsayısı: {mean_dice:.4f}")
-        self.visualize_predictions()
+        y_true_collected = []
+        y_pred_collected = []
+        for images, masks in self.test_dataset:
+            predictions = self.model.predict(images, verbose=0) 
+            predicted_masks = tf.argmax(predictions, axis=-1)
+            y_true_collected.append(tf.argmax(masks, axis=-1).numpy())
+            y_pred_collected.append(predicted_masks.numpy())
+        if not y_true_collected or not y_pred_collected:
+            print("Uyarı: Test veri kümesinden hiç veri toplanamadı.")
+            return
+        # y_true_final = np.concatenate(y_true_collected, axis=0)
+        # y_pred_final = np.concatenate(y_pred_collected, axis=0)
+        # mean_iou = self._calculate_mean_iou(y_true_final, y_pred_final)
+        # print(f"Model değerlendirme tamamlandı. Ortalama IoU: {mean_iou:.4f}")
