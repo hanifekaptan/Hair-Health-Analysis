@@ -160,5 +160,5 @@ Bu proje Apache License 2.0 altında lisanslanmıştır. Detaylar için [LICENSE
 
 Hanife Kaptan
 - Email: [hanifekaptan.dev@gmail.com](mailto:hanifekaptan.dev@gmail.com)
-- LinkedIn: [Hanife Kaptan](https://www.linkedin.com/in/hanife-kaptan/)
+- LinkedIn: [Hanife Kaptan](https://www.linkedin.com/in/hanifekaptan/)
 
