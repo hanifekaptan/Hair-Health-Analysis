@@ -57,8 +57,6 @@ hair_health_analysis/
 │   ├── hairstyle_classification.md
 │   ├── hairstyle_segmentation.md
 │   ├── config.md
-│   ├── utils.md
-│   ├── overview.md
 │   └── usage.md
 ├── main.py
 ├── setup.py
@@ -149,7 +147,7 @@ segmentation.api()  # http://127.0.0.1:8000 adresinde çalışır
 ## 📊 Model Performansı
 
 - Saç Hastalıkları Sınıflandırma: 0.90 accuracy
-- Saç Stili Sınıflandırma: 0.90 accuracy
+- Saç Stili Sınıflandırma: 0.67 accuracy
 - Saç Segmentasyonu: 0.95 accuracy
 
 
