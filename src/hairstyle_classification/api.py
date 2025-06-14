@@ -38,8 +38,8 @@ class HairstyleClassificationAPI:
 
         description = """
         Bu API, derin öğrenme modelleri kullanarak saç segmentasyonu ve sınıflandırması gerçekleştirir.
-        Segmentasyon Modeli Doğruluğu: ~0.96 (En İyi-1 Doğruluk)
-        Sınıflandırma Modeli Doğruluğu: ~0.84 (En İyi-1 Doğruluk)
+        Segmentasyon Modeli Doğruluğu: ~0.96
+        Sınıflandırma Modeli Doğruluğu: ~0.67
         """
         return description
 
